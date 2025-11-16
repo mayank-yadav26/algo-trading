@@ -8,6 +8,7 @@ A comprehensive Spring Boot-based algorithmic trading platform featuring live ma
 - [Tech Stack](#-tech-stack)
 - [Project Structure](#-project-structure)
 - [Getting Started](#-getting-started)
+- [Debugging in Docker](#-debugging-in-docker)
 - [API Documentation](#-api-documentation)
 - [Usage Examples](#-usage-examples)
 - [Configuration](#-configuration)
@@ -167,6 +168,8 @@ algo-trading/
    ```bash
    docker-compose up --build
    ```
+   
+   > 🐛 **Debug Mode Enabled**: All services run with JDWP remote debugging enabled. See [Debugging in Docker](#-debugging-in-docker) section.
 
 4. **Access the services**
    - Dashboard: http://localhost:8080/swagger-ui.html
@@ -211,7 +214,103 @@ algo-trading/
    ../mvnw spring-boot:run
    ```
 
-## 📚 API Documentation
+## � Debugging in Docker
+
+All services are configured with **Java Debug Wire Protocol (JDWP)** for remote debugging. VS Code launch configurations are included.
+
+### Debug Ports
+- **Market Data Service**: `localhost:5005`
+- **Strategy Service**: `localhost:5006`
+- **Virtual Broker Service**: `localhost:5007`
+- **Dashboard Service**: `localhost:5008`
+
+### Quick Debug Setup
+
+1. **Ensure services are running**
+   ```bash
+   docker-compose up -d
+   ```
+
+2. **Open VS Code Debug Panel** (`Ctrl+Shift+D`)
+   - Pre-configured launch configurations are in `.vscode/launch.json`
+   - Select the service you want to debug from dropdown
+
+3. **Set breakpoints** in any Java file
+   - Click left margin next to line number
+   - Red dot indicates active breakpoint
+
+4. **Attach debugger** (Press `F5`)
+   - VS Code connects to running container
+   - Wait for "Debugger attached" message
+
+5. **Trigger your code** with an API call
+   ```bash
+   curl http://localhost:8082/api/strategies/1/signal
+   ```
+
+### Debug Configurations (`.vscode/launch.json`)
+
+The project includes 4 pre-configured debug profiles:
+
+```json
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Debug Market Data Service (Docker)",
+      "request": "attach",
+      "hostName": "localhost",
+      "port": 5005,
+      "projectName": "market-data-service"
+    },
+    {
+      "type": "java",
+      "name": "Debug Strategy Service (Docker)",
+      "request": "attach",
+      "hostName": "localhost",
+      "port": 5006,
+      "projectName": "strategy-service"
+    },
+    {
+      "type": "java",
+      "name": "Debug Virtual Broker Service (Docker)",
+      "request": "attach",
+      "hostName": "localhost",
+      "port": 5007,
+      "projectName": "virtual-broker-service"
+    },
+    {
+      "type": "java",
+      "name": "Debug Dashboard Service (Docker)",
+      "request": "attach",
+      "hostName": "localhost",
+      "port": 5008,
+      "projectName": "dashboard-service"
+    }
+  ]
+}
+```
+
+### Debug Controls
+- **F5** - Continue execution
+- **F10** - Step over (next line)
+- **F11** - Step into method
+- **Shift+F11** - Step out of method
+- **Shift+F5** - Stop debugging
+
+### Rebuild After Code Changes
+```bash
+# Rebuild all services
+docker-compose up -d --build
+
+# Rebuild specific service
+docker-compose up -d --build strategy-service
+```
+
+📖 **Full debugging guide**: See [`DEBUG_QUICKSTART.md`](DEBUG_QUICKSTART.md) and [`docs/DEBUGGING_GUIDE.md`](docs/DEBUGGING_GUIDE.md)
+
+## �📚 API Documentation
 
 Each service exposes its API documentation via Swagger UI:
 
