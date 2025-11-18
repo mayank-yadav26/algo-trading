@@ -1,0 +1,39 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: dashboard-service
+  
+  datasource:
+    url: jdbc:postgresql://localhost:5432/algotrading?ssl=false
+    username: algotrading
+    password: algotrading
+    driver-class-name: org.postgresql.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+
+# Service URLs
+services:
+  market-data:
+    url: http://localhost:8081
+  strategy:
+    url: http://localhost:8082
+  broker:
+    url: http://localhost:8083
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html

@@ -1,0 +1,115 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: algo-trading-db
+    environment:
+      POSTGRES_DB: algotrading
+      POSTGRES_USER: algotrading
+      POSTGRES_PASSWORD: algotrading
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - algo-trading-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U algotrading"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  market-data-service:
+    build:
+      context: .
+      dockerfile: market-data-service/Dockerfile
+    container_name: market-data-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/algotrading
+      SPRING_DATASOURCE_USERNAME: algotrading
+      SPRING_DATASOURCE_PASSWORD: algotrading
+      FINNHUB_API_KEY: ${FINNHUB_API_KEY:-your_finnhub_api_key}
+      ALPHAVANTAGE_API_KEY: ${ALPHAVANTAGE_API_KEY:-your_alphavantage_api_key}
+    ports:
+      - "8081:8081"
+      - "5005:5005"  # Debug port
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - algo-trading-network
+    restart: unless-stopped
+
+  strategy-service:
+    build:
+      context: .
+      dockerfile: strategy-service/Dockerfile
+    container_name: strategy-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/algotrading
+      SPRING_DATASOURCE_USERNAME: algotrading
+      SPRING_DATASOURCE_PASSWORD: algotrading
+    ports:
+      - "8082:8082"
+      - "5006:5006"  # Debug port
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - algo-trading-network
+    restart: unless-stopped
+
+  virtual-broker-service:
+    build:
+      context: .
+      dockerfile: virtual-broker-service/Dockerfile
+    container_name: virtual-broker-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/algotrading
+      SPRING_DATASOURCE_USERNAME: algotrading
+      SPRING_DATASOURCE_PASSWORD: algotrading
+    ports:
+      - "8083:8083"
+      - "5007:5007"  # Debug port
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - algo-trading-network
+    restart: unless-stopped
+
+  dashboard-service:
+    build:
+      context: .
+      dockerfile: dashboard-service/Dockerfile
+    container_name: dashboard-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/algotrading
+      SPRING_DATASOURCE_USERNAME: algotrading
+      SPRING_DATASOURCE_PASSWORD: algotrading
+      SERVICES_MARKETDATA_URL: http://market-data-service:8081
+      SERVICES_STRATEGY_URL: http://strategy-service:8082
+      SERVICES_BROKER_URL: http://virtual-broker-service:8083
+    ports:
+      - "8080:8080"
+      - "5008:5008"  # Debug port
+    depends_on:
+      postgres:
+        condition: service_healthy
+      market-data-service:
+        condition: service_started
+      strategy-service:
+        condition: service_started
+      virtual-broker-service:
+        condition: service_started
+    networks:
+      - algo-trading-network
+    restart: unless-stopped
+
+networks:
+  algo-trading-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

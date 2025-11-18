@@ -1,0 +1,38 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: virtual-broker-service
+  
+  datasource:
+    url: jdbc:postgresql://localhost:5432/algotrading?ssl=false
+    username: algotrading
+    password: algotrading
+    driver-class-name: org.postgresql.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+
+# Virtual Broker Configuration
+broker:
+  commission:
+    rate: 0.001 # 0.1% commission per trade
+  slippage:
+    percentage: 0.0005 # 0.05% slippage
+  
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html

@@ -1,0 +1,48 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: market-data-service
+  
+  datasource:
+    url: jdbc:postgresql://localhost:5432/algotrading?ssl=false
+    username: algotrading
+    password: algotrading
+    driver-class-name: org.postgresql.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+
+# Market Data API Configuration
+market-data:
+  api:
+    provider: finnhub # Options: finnhub, alphavantage
+    finnhub:
+      api-key: ${FINNHUB_API_KEY:your_finnhub_api_key}
+      base-url: https://finnhub.io/api/v1
+    alphavantage:
+      api-key: ${ALPHAVANTAGE_API_KEY:your_alphavantage_api_key}
+      base-url: https://www.alphavantage.co/query
+  
+  schedule:
+    enabled: true
+    cron: "0 */5 * * * *" # Every 5 minutes
+    symbols: AAPL,GOOGL,MSFT,TSLA,AMZN
+    timeframe: 5 # minutes
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
