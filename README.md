@@ -2,7 +2,7 @@
 
 A comprehensive Spring Boot-based algorithmic trading platform featuring live market data integration, technical analysis strategies, backtesting capabilities, and virtual paper trading.
 
-## 📋 Table of Contents
+##  Table of Contents
 - [Features](#-features)
 - [Architecture](#-architecture)
 - [Tech Stack](#-tech-stack)
@@ -151,6 +151,12 @@ algo-trading/
 
 ### Quick Start with Docker
 
+**🎯 Flexible PostgreSQL Setup**
+
+The system automatically detects if PostgreSQL is already running on your machine:
+- **If PostgreSQL is running on port 5432**: Uses the existing instance
+- **If no PostgreSQL found**: Starts a PostgreSQL container on port 5433
+
 1. **Clone the repository**
    ```bash
    git clone https://github.com/mayank-yadav26/algo-trading.git
@@ -164,14 +170,39 @@ algo-trading/
    nano .env
    ```
 
-3. **Build and run with Docker Compose**
+3. **Run the quick start script**
    ```bash
-   docker-compose up --build
+   chmod +x quickstart.sh
+   ./quickstart.sh
+   ```
+   
+   The script will:
+   - ✅ Detect existing PostgreSQL on port 5432
+   - ✅ Create `algotrading` database if needed
+   - ✅ Start services with appropriate connection settings
+   - ✅ Or start PostgreSQL container if none exists
+   
+   **Alternative: Manual database setup**
+   ```bash
+   chmod +x setup-database.sh
+   ./setup-database.sh
+   ```
+
+4. **Or build and run manually with Docker Compose**
+   
+   **If PostgreSQL already running on port 5432:**
+   ```bash
+   docker-compose up --build -d
+   ```
+   
+   **If no PostgreSQL (start bundled container):**
+   ```bash
+   docker-compose --profile with-db up --build -d
    ```
    
    > 🐛 **Debug Mode Enabled**: All services run with JDWP remote debugging enabled. See [Debugging in Docker](#-debugging-in-docker) section.
 
-4. **Access the services**
+5. **Access the services**
    - Dashboard: http://localhost:8080/swagger-ui.html
    - Market Data: http://localhost:8081/swagger-ui.html
    - Strategy: http://localhost:8082/swagger-ui.html
@@ -402,6 +433,52 @@ curl -X GET "http://localhost:8083/api/portfolio/strategy/1/summary"
 ```
 
 ## ⚙️ Configuration
+
+### Database Configuration
+
+The system supports flexible PostgreSQL connection modes:
+
+#### Option 1: Use Existing PostgreSQL (Recommended)
+If you already have PostgreSQL running on port 5432:
+```bash
+# System will auto-detect and use it
+./quickstart.sh
+```
+
+Ensure the `algotrading` database exists:
+```sql
+-- For Docker PostgreSQL
+docker exec -it <your-postgres-container> psql -U postgres -c "CREATE DATABASE algotrading;"
+
+-- For host PostgreSQL
+psql -U postgres -c "CREATE DATABASE algotrading;"
+```
+
+#### Option 2: Start Bundled PostgreSQL Container
+If no PostgreSQL is detected, the system starts a container on port 5433:
+```bash
+# Manual start with PostgreSQL profile
+docker-compose --profile with-db up -d
+
+# Or use the database setup script
+./setup-database.sh
+```
+
+#### Connection Details
+- **Host**: localhost (for running services) or `host.docker.internal` (for Docker services)
+- **Port**: 5432 (existing) or 5433 (bundled container)
+- **Database**: algotrading
+- **Username**: postgres
+- **Password**: postgres
+
+Edit `application.yml` in each service if needed:
+```yaml
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/algotrading
+    username: postgres
+    password: postgres
+```
 
 ### Market Data Service
 Edit `market-data-service/src/main/resources/application.yml`:

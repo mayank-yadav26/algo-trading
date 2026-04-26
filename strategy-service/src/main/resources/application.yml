@@ -7,8 +7,8 @@ spring:
   
   datasource:
     url: jdbc:postgresql://localhost:5432/algotrading?ssl=false
-    username: algotrading
-    password: algotrading
+    username: postgres
+    password: postgres
     driver-class-name: org.postgresql.Driver
   
   jpa:
